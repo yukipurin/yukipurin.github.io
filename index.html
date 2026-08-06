@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ぷりんラボ｜リオナと旅する異世界ケルトBGM＆ゲーム</title>
+<meta name="description" content="ハーフエルフのリオナと旅する異世界ケルト音楽（音の図書館）と、個人開発のゲーム・アプリ。創世のマナ、誤変換大戦、ことば仕分け帳、周期リマインダー配信中。">
+<style>
+  :root{
+    --night:#0d1420;
+    --deep:#141e2e;
+    --mist:#8fa8c4;
+    --parchment:#e8e2d2;
+    --gold:#c9a86a;
+    --glow:#7ec4cf;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:
+      radial-gradient(ellipse 90% 60% at 50% -10%, #1e3050 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 100%, #16283e 0%, transparent 70%),
+      var(--night);
+    color:var(--parchment);
+    font-family:"Hiragino Mincho ProN","Yu Mincho",serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:56px 20px 80px;
+  }
+  .scroll{max-width:560px;width:100%}
+  header{text-align:center;margin-bottom:48px}
+  .mark{
+    font-size:13px;letter-spacing:.5em;color:var(--gold);
+    text-transform:uppercase;margin-bottom:18px;
+  }
+  h1{
+    font-size:26px;font-weight:600;letter-spacing:.12em;line-height:1.6;
+  }
+  .lead{
+    margin-top:16px;color:var(--mist);font-size:14px;line-height:2;
+    letter-spacing:.08em;
+  }
+  section{margin-top:44px}
+  h2{
+    font-size:12px;letter-spacing:.4em;color:var(--gold);font-weight:600;
+    display:flex;align-items:center;gap:14px;margin-bottom:18px;
+  }
+  h2::after{content:"";flex:1;height:1px;background:linear-gradient(to right,rgba(201,168,106,.5),transparent)}
+  a.card{
+    display:block;text-decoration:none;color:inherit;
+    background:linear-gradient(160deg,rgba(255,255,255,.045),rgba(255,255,255,.015));
+    border:1px solid rgba(143,168,196,.22);
+    border-radius:4px;
+    padding:20px 22px;
+    margin-bottom:12px;
+    transition:border-color .25s, transform .25s;
+  }
+  a.card:hover{border-color:var(--glow);transform:translateY(-2px)}
+  .card .name{font-size:17px;letter-spacing:.1em}
+  .card .name small{color:var(--gold);font-size:11px;letter-spacing:.2em;margin-left:10px}
+  .card p{margin-top:8px;font-size:13px;color:var(--mist);line-height:1.9;letter-spacing:.05em}
+  .soon{opacity:.55}
+  .soon .name small{color:var(--mist)}
+  footer{
+    margin-top:64px;text-align:center;color:var(--mist);
+    font-size:11px;letter-spacing:.3em;
+  }
+  footer a{color:var(--mist)}
+</style>
+</head>
+<body>
+<div class="scroll">
+  <header>
+    <div class="mark">Purin Labo</div>
+    <h1>リオナ・ルミエールと旅する<br>異世界のことば と 音楽</h1>
+    <p class="lead">ハーフエルフの旅人リオナがめぐる世界の音楽と、<br>その旅先で生まれた小さなゲームやアプリたち。</p>
+  </header>
+
+  <section>
+    <h2>音楽 — 音の図書館</h2>
+    <a class="card" href="https://www.youtube.com/@soundlibrarystudio" target="_blank" rel="noopener">
+      <div class="name">音の図書館 -Sound Library-<small>YouTube</small></div>
+      <p>異世界ケルト音楽の作業用・勉強用BGM。リオナの旅先を、2日に1度お届けしています。</p>
+    </a>
+  </section>
+
+  <section>
+    <h2>ゲーム・アプリ</h2>
+    <a class="card" href="https://apps.apple.com/jp/app/id6780463661" target="_blank" rel="noopener">
+      <div class="name">創世のマナ<small>iOS</small></div>
+      <p>マナを紡いで世界を創る、静かな放置ゲーム。無から森が、海が、文明が生まれる。</p>
+    </a>
+    <a class="card" href="https://apps.apple.com/jp/app/id6787645238" target="_blank" rel="noopener">
+      <div class="name">誤変換大戦<small>iOS</small></div>
+      <p>「魔王を倒した」が「魔王を倒産した」に。変換ミスで世界が暴走する、言葉のバカゲー。</p>
+    </a>
+    <a class="card" href="https://apps.apple.com/jp/app/id6781580333" target="_blank" rel="noopener">
+      <div class="name">ことば仕分け帳<small>iOS</small></div>
+      <p>「暑い」「熱い」「厚い」、ちゃんと仕分けられる？ 日本語の語彙を棚に整える短時間パズル。</p>
+    </a>
+    <a class="card" href="https://apps.apple.com/jp/app/id6780852897" target="_blank" rel="noopener">
+      <div class="name">周期リマインダー<small>iOS</small></div>
+      <p>フィルター交換、植物の水やり。「◯日ごとのやること」を静かに憶えておく道具。</p>
+    </a>
+    <div class="card soon">
+      <div class="name">推し日和<small>準備中</small></div>
+      <p>推しへの気持ちを、毎日ひとことだけ。推し活の記録帳。</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>たより</h2>
+    <a class="card" href="https://x.com/Purin_Labo" target="_blank" rel="noopener">
+      <div class="name">@Purin_Labo<small>X</small></div>
+      <p>開発の途中経過と、リオナの旅の便り。</p>
+    </a>
+  </section>
+
+  <footer>
+    <p>© Purin Labo ｜ <a href="/privacy.html">Privacy</a></p>
+  </footer>
+</div>
+</body>
+</html>
