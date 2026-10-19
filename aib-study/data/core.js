@@ -1,159 +1,39 @@
 (() => {
-  'use strict';
-  const guide='https://docs.aws.amazon.com/pdfs/aws-certification/latest/ai-business-strategist-01/ai-business-strategist-01.pdf';
-  const sources={
-    guide,
-    bedrock:'https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-bedrock.html',
-    rag:'https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base.html',
-    guard:'https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-how.html',
-    sage:'https://docs.aws.amazon.com/sagemaker/latest/dg/how-it-works-mlconcepts.html',
-    quick:'https://docs.aws.amazon.com/quick/latest/userguide/topics-index.html',
-    caf:'https://docs.aws.amazon.com/whitepapers/latest/overview-aws-cloud-adoption-framework/business-perspective.html',
-    lens:'https://docs.aws.amazon.com/wellarchitected/latest/responsible-ai-lens/responsible-ai-lens.html',
-    shared:'https://aws.amazon.com/compliance/shared-responsibility-model/',
-    calc:'https://calculator.aws/',
-    cost:'https://docs.aws.amazon.com/cost-management/latest/userguide/ce-what-is.html',
-    market:'https://aws.amazon.com/marketplace/',
-    iso42001:'https://www.iso.org/standard/42001',
-    iso23053:'https://www.iso.org/standard/74438.html'
-  };
-  // Each record is an independently checked decision. Scenarios combine two
-  // decisions, so no question repeats another question's choice set or answer.
-  // id, task, case, applicable action, close but unsuitable action,
-  // reason for applicable action, reason for unsuitable action, source.
-  const topics=[
-    ['F01','1.1.1','販売部は学習済み需要モデルへ当日の天候を渡し、明日の発注量を知りたい。','既存モデルへ新しい天候を入力して需要を推論する','当日の天候でモデルの学習工程をやり直してから発注する','学習済みモデルから新しい入力への予測を得る段階である。','新しい値を予測する依頼であり、学習工程の再実行が先ではない。','guide'],
-    ['F02','1.1.2','広報部は発売前の商品情報から新しい紹介文の下書きを作りたい。','生成AIで商品情報を基に文章の下書きを生成する','過去の販売数を予測する回帰モデルを文章作成に使う','新しい文章を作る用途は生成AIに当たる。','販売数の予測は数値を出す用途で、文章の下書きとは異なる。','guide'],
-    ['F03','1.1.3','顧客部は通話録音と自由記述の相談を分析対象へ加えたい。','音声と自由文を非構造化データとして扱う','録音を顧客IDの定型列と同じ構造化データとして扱う','音声本体と自由文は固定の列だけでは表せない。','顧客IDは構造化データだが、録音本体の形式は異なる。','guide'],
-    ['F04','1.1.4','物流部は配送予測の誤差が特定地域で大きく、学習記録に欠損も見つけた。','欠損と地域別の代表性を調べ、学習データを直す','モデルの種類を先に替え、入力データの調査を後回しにする','欠損と偏った分布は予測の品質を損なう。','データが偏ったままではモデル変更の効果を判定しにくい。','guide'],
-    ['F05','1.1.5','保険部は過去の請求内容と調査結果を使って不正検知を計画する。','過去の入力と結果の対応を学習用の例として使う','請求額の件数分布を学習し、調査結果との対応を取らない','入力と結果の組が教師あり学習の材料になる。','結果との対応がなければ過去の判定から学ぶ用途を満たさない。','guide'],
-    ['F06','1.1.6','海外子会社を含む経営会議がAI管理の共通規格を探している。','組織のAI管理にはISO/IEC 42001を参照する','AI管理体制の規格としてISO/IEC 23053を採用する','42001はAIマネジメントシステムの規格である。','23053は機械学習を使うAIシステムの概念枠組みである。','iso42001'],
-    ['F07','1.2.1','経理部は請求額が承認基準を超えるかを決めた規程で判定する。','固定された承認条件をルールとして実装する','承認額を生成AIの自由回答で毎回決める','明示された条件の判定にはルールが合う。','自由回答は固定された承認条件の再現性を下げる。','guide'],
-    ['F08','1.2.2','旅行部は予約変更の意図を読み、空席照会と担当者承認を経て処理したい。','目標に沿う手順を組み、照会ツールと承認を連携する','依頼文を分類して担当者へ渡し、空席照会は別工程にする','エージェントの特徴は手順の調整とツール利用にある。','要約だけでは照会と承認を伴う業務を終えられない。','guide'],
-    ['F09','1.2.3','商品部は新しい品目の投入後、需要予測の誤差が増えている。','入力分布と本番精度を監視し、必要ならモデルを更新する','導入時の評価結果を採用し、品目変更の影響を年度末に見る','環境変化による精度低下を監視して対応する。','導入時の評価だけでは品目変更後の性能が分からない。','guide'],
-    ['F10','1.2.4','営業部で個人契約の生成AIへ未公開資料を入れる利用が増えた。','承認済みツールと投入可能なデータの基準を示す','各担当者の判断に任せ、利用状況は費用集計で把握する','シャドーAIの管理には利用区分とデータ基準が要る。','費用集計では未承認利用と情報の扱いを把握できない。','guide'],
-    ['F11','1.3.1','法務部は長い契約書から役員向けの短い要点を同じ形式で得たい。','目的と対象読者、要点数と出力形式をプロンプトで指定する','契約書本文を渡し、体裁はモデルの標準設定に任せる','文脈と出力条件の指定が一貫した回答を助ける。','本文だけでは役員向けの長さや形式が伝わらない。','guide'],
-    ['F12','1.3.2/1.3.3','人事部の規程は毎週改訂され、回答には現行版の根拠が要る。','Knowledge Basesで現行文書を検索し回答へ渡す','改訂ごとに基盤モデルを再学習して規程を覚えさせる','RAGは回答時に関連する文書を取り出す。','文書改訂の反映に毎回モデル再学習を使う設計は合わない。','rag'],
-    ['F13','1.3.2','監査部は数百ページの議事録を一度にモデルへ渡そうとしている。','トークン数とコンテキスト窓を見て資料を分割する','出力の温度設定を下げて入力上限を拡張する','入力可能な文脈量には上限がある。','温度は生成のばらつきに関係し、入力上限を増やさない。','guide'],
-    ['F14','1.3.3','審査部は大量の承認済み例があり、一定の文体で回答させたい。','評価用の例を分けたうえでファインチューニングを検討する','改訂規程を固定した学習例に加えてモデルを調整する','一貫した出力形式への適応は調整の候補になる。','頻繁に変わる知識の参照には検索を組み合わせる方が合う。','guide'],
-
-    ['S01','2.1.1','役員会は問い合わせ支援AIの提案を受けたが、成果の定義がない。','対象業務と削減時間など測れる事業成果を決める','モデルのパラメータ数を事業成果の指標に置く','ユースケースは業務成果と結び付けて選ぶ。','パラメータ数は問い合わせ業務の成果を示さない。','guide'],
-    ['S02','2.1.2','購買部はAI文書検索を内製する案と外部調達する案を比べる。','納期、費用、社内能力とデータ条件で内製と購入を比べる','初期ライセンス額と納期を評価し、運用能力の検討を契約後へ回す','構築と調達の比較には運用を含む条件が要る。','初期費用だけでは能力やデータ条件を評価できない。','guide'],
-    ['S03','2.1.3','企画部のAI実証は精度が高い一方、現場の利用率が低い。','実証の価値と実現性を見直し、拡大か保留か決める','評価指標を精度に絞り、そのまま全店へ拡大する','実証後の判断には採用と事業価値も含める。','精度だけでは現場に価値が出るか分からない。','guide'],
-    ['S04','2.1.4','請求部は税率表から請求税額を計算する手順へAIを提案した。','固定された計算は既存の規則処理で実装する','税率の適用を生成AIの文章判断へ置き換える','固定の計算規則には決定的な処理が合う。','自由文の判断にすると税率表の厳密な適用を損なう。','guide'],
-    ['S05','2.1.5','運用部は既存の問い合わせシステムへAI支援を組み込む。','並行稼働と切り戻し、品質と費用を確認して移行する','少人数の試用結果を基に既存手順を早期に廃止する','移行時は業務継続と品質を確かめる。','短い試用では障害や業務負荷への対応を確認しきれない。','guide'],
-    ['S06','2.2.1','店舗部は接客AIの導入効果を役員へ報告する指標を探す。','対応時間と顧客満足度を業務KPIとして追う','モデルの呼び出し回数を顧客満足の代わりに使う','効率と顧客側の成果を測る指標が要る。','呼び出し回数は利用量であり顧客成果ではない。','guide'],
-    ['S07','2.2.2','配送部はAIによる配車変更の効果を導入前と比較したい。','導入前の所要時間と費用、遅延率を基準値として残す','導入後の最高記録を唯一の比較基準にする','比較には変更前の測定値が要る。','最高記録では平均的な改善と変動を判断できない。','guide'],
-    ['S08','2.2.3','財務部はAI案件の初年度便益と導入費、運用費を比較する。','便益から初期費と運用費を引いて純便益を出す','便益を導入費で割った値を純便益として使う','純便益は便益から全費用を差し引く。','比率は別の指標で、金額の純便益ではない。','guide'],
-    ['S09','2.2.4','営業部はAI提案支援の売上効果が出る前に定着状況を見たい。','対象者の利用率と業務中の継続利用を追う','月末の売上総額を定着状況の先行指標にする','採用率は成果に先立つ利用の兆候になる。','売上総額は結果の指標で利用定着を直接示さない。','guide'],
-    ['S10','2.2.5','財務部は生成AIの利用増で月額費用が見積もりを超えた。','Cost Explorerで実費と利用傾向を分析する','Pricing Calculatorの導入前見積もりを実費として扱う','Cost Explorerは利用済みの費用分析に使う。','Calculatorは見積もり用で実際の請求分析とは役割が違う。','cost'],
-    ['S11','2.3.1','事業部は競合のAI相談サービスに対抗する企画を練る。','顧客の未解決課題と競合の提供価値を比べる','競合と同じモデル名を選ぶことを差別化策とする','市場機会は顧客の課題と競合の価値から探る。','モデル名の一致は顧客への差を生まない。','guide'],
-    ['S12','2.3.2','保守部は機器販売後の故障予兆を月額サービスへ広げたい。','機器データを継続的な予兆サービスの収益へ結び付ける','初回販売時の値引き額と延長保証の条件を収益策の中心に置く','予測を継続提供する形は新たな収益源になる。','値引きは価格変更で、予兆サービスの継続価値とは異なる。','guide'],
-    ['S13','2.3.3','製造部は競合も使える基盤モデルで独自の保守支援を作る。','自社の保守記録と現場業務への組み込みで差を作る','公開モデルの名称を専有して持続的な差とみなす','独自データと業務への定着が模倣しにくさにつながる。','共有できるモデル名は自社固有の優位になりにくい。','guide'],
-    ['S14','2.3.4','経営部は競合が先行する市場でAI投資の規模を決める。','市場の成熟度と成果の確度を見て投資を段階化する','競合の投資額と発表時期を基準に、自社も同水準を投資する','競争環境と自社成果の確度で投資を決める。','競合額だけでは自社の回収見込みを測れない。','guide'],
-    ['S15','2.2.5','財務部は生成AIの新規導入費と運用後の請求額を区別したい。','導入前はPricing Calculator、運用後はCost Explorerを使う','運用後の実費分析もPricing Calculatorで済ませる','前者は見積もり、後者は実費分析の道具である。','Calculatorの見積もりは実際の利用額を示さない。','calc'],
-    ['S16','2.1.2','調達部は第三者のAI製品を契約条件と合わせて比較したい。','AWS Marketplaceで製品と調達条件を確認する','Amazon Bedrockを第三者製品の契約市場として扱う','Marketplaceは第三者製品を探し調達する場である。','Bedrockは生成AIサービスで、製品市場そのものではない。','market'],
-
-    ['G01','3.1.1','採用部はAIの書類選考で地域別の通過率に差を見つけた。','属性別の結果を調べ、公平性を評価する','全体の平均精度を基に公平性の評価を終える','集団間の結果を見ないと偏りは見つけにくい。','平均精度が高くても特定集団の不利は残る。','lens'],
-    ['G02','3.1.2','金融部は審査速度を上げたいが、申込者の権利への影響もある。','事業効果と申込者への影響を評価し制約を設ける','処理速度の改善を評価してから権利面を運用後に扱う','原則間のトレードオフを導入前に評価する。','権利への影響を後回しにすると設計を誤る。','lens'],
-    ['G03','3.1.3','新規のAI推薦機能は企画段階で対象顧客が決まっている。','設計時に安全性と公平性の条件を入れ、運用でも見直す','公開後の問い合わせが増えてから責任あるAIの条件を決める','Responsible AI Lensは設計から運用までの検討を求める。','公開後に条件を決めると設計段階のリスクを見逃す。','lens'],
-    ['G04','3.1.4','医療相談のAIが緊急性の高い症状に回答する可能性がある。','高リスクの回答は根拠を示し人の確認へ回す','応答速度と一般的な正答率で緊急性判定を承認する','重大な影響がある回答には人の関与が要る。','速度だけでは誤判断時の危害を抑えられない。','lens'],
-    ['G05','3.2.1','全社のAI案件で審査責任者が部門ごとに違い、判断が揺れる。','事業、技術、法務を含む審査体制と責任者を定める','各開発者の評価結果をそのまま全社承認とする','部門横断の統治と責任の明確化が必要である。','開発者だけの承認では事業と法務の視点が欠ける。','guide'],
-    ['G06','3.2.2','人事部は複数地域の従業員情報でAIを使う案を出した。','対象地域の法令と契約条件を確認して処理を設計する','本社所在地の社内規程を基に全地域の条件を判断する','適用される地域と用途ごとに条件を確認する。','本社規程だけでは他地域の義務を確認できない。','guide'],
-    ['G07','3.2.3','法務部の契約文書をAIへ渡す際、閲覧できる社員を絞りたい。','職務に合わせてデータへの権限を制限し記録する','モデルの回答履歴を記録し、元文書の権限を共通化する','アクセス制御はデータと利用者の役割に基づく。','回答履歴は元文書への権限管理を代替しない。','shared'],
-    ['G08','3.2.4','企画部は社内FAQと融資判断支援を同じ審査にかけている。','影響の深刻さと発生可能性で審査水準を分ける','両案件に社内FAQと同じ承認手順を適用する','影響が異なる案件は管理水準を変える。','融資支援の影響はFAQより重く、同じ審査では不足する。','lens'],
-    ['G09','3.3.1','顧客向けAIの回答品質が稼働後に変わり、苦情が増えた。','品質と安全性の指標を監視し、警告と対応手順を置く','公開前の試験結果を毎月再掲して運用品質とする','運用中の品質を監視し変化に対応する。','公開前の結果では稼働後の変化が分からない。','lens'],
-    ['G10','3.3.2','採用AIの応募者構成が変わり、属性別の結果も変化した。','属性別の結果を継続測定し偏りの変化を調べる','導入時の公平性評価を運用中の評価として流用する','運用時の分布変化も公平性に影響する。','過去の評価は現在の応募者構成を反映しない。','lens'],
-    ['G11','3.3.3','顧客向けチャットが攻撃的な入力から不適切な文を返した。','Bedrock Guardrailsで入力と出力の安全策を設定する','Knowledge Basesの文書検索を有害表現の制御に使う','Guardrailsは内容フィルターなどの安全策を提供する。','文書検索は情報取得であり有害出力の制御とは役割が違う。','guard'],
-    ['G12','3.3.4','保険AIが旧版の約款に基づく補償額を断定している。','現行の根拠文書を検索し、曖昧な回答は人へ引き継ぐ','回答の文体を調整して補償額の根拠確認を省く','RAGと人への引き継ぎが誤情報の影響を抑える。','文体の調整は根拠の正しさを保証しない。','rag'],
-    ['G13','3.2.3','管理部はAWS上のAIアプリで顧客データの権限を管理する。','顧客データと権限の設定は利用企業の責任として管理する','クラウド基盤の運営と同じ責任範囲をAWSへ委ねる','共有責任モデルでも顧客データの管理は顧客側に残る。','AWSの基盤運営責任と顧客のデータ管理責任は異なる。','shared'],
-    ['G14','3.1.4/3.3.3','公開チャットは入力で機密情報を求められ、回答の制限も要る。','Bedrock Guardrailsで禁止内容と機密情報の扱いを設定する','Bedrock Knowledge Basesを入力と出力の安全フィルターにする','Guardrailsは入力と出力へ安全策を適用する。','Knowledge Basesは検索機能で、安全フィルターの代用ではない。','guard'],
-
-    ['T01','4.1.1','経営部はAI導入前に部門ごとの準備状況を把握したい。','経営の合意、データ、文化、技術基盤と統治を評価する','モデルの購入可否と技術評価で組織の準備度を判断する','組織の準備度は複数の能力で決まる。','製品の購入だけでは人と統治の準備を測れない。','guide'],
-    ['T02','4.1.2','各支店のAI実証は成功したが、全社の共通運用は未整備である。','実証と全社運用の成熟段階を分けて評価する','実証が一件成功した時点で全社成熟と判定する','成熟度は実証から共通運用まで段階がある。','一件の成功では組織全体の運用能力は示せない。','guide'],
-    ['T03','4.1.3/4.1.4','AI導入の予算はあるが、現場の担当者と承認手順が不足する。','人材と業務手順の不足を特定して投資する','計算資源を増やして担当者と承認手順の不足を補う','不足している能力へ投資を合わせる。','計算資源は人の担当と承認設計を代替しない。','guide'],
-    ['T04','4.2.1/4.2.2','複数部門の顧客記録は形式が違い、データ責任者も曖昧である。','所有者と品質基準、共有条件を決めてデータを整える','共有先の画面とデータ連携を先に作り、記録の品質は現場へ任せる','データ戦略には所有と品質の管理が要る。','表示画面だけでは元データの品質を揃えられない。','guide'],
-    ['T05','4.2.3','事業部は基盤モデルを使った社内文書の回答アプリを作りたい。','Amazon Bedrockで基盤モデルと文書検索を検討する','SageMaker AIで独自モデルを先に学習し、文書検索を後で加える','Bedrockは基盤モデルの利用とRAG構築を支援する。','既存の基盤モデル利用には独自学習が必須ではない。','bedrock'],
-    ['T06','4.3.1/4.3.2','本社のAI改革は部門ごとに目的が違い、意思決定が止まる。','経営スポンサーと部門横断チームの責任を定める','技術部門の評価を基に事業全体の優先順位を決める','AWS CAFは経営と組織の観点を扱う。','技術担当だけでは部門間の事業判断を代表しにくい。','caf'],
-    ['T07','4.3.3/4.3.4','現場ではAI導入で担当業務が変わるという噂が広がった。','導入時期と役割の変化を説明し、現場の意見を聞く','部門長へ情報を集約し、正式運用で役割が確定してから現場へ説明する','変革時は影響を具体的に伝え意見を集める。','説明を遅らせると現場の懸念を把握できない。','guide'],
-    ['T08','4.3.5/4.3.6','窓口の職員はAI回答の例外処理と顧客対応を続ける。','基礎と責任ある利用を研修し、人の例外判断を残す','回答操作を研修し、例外時の判断は各窓口へ委ねる','教育と業務役割の再設計が必要である。','操作だけの研修では例外時の責任が曖昧になる。','guide'],
-    ['T09','4.4.1/4.4.2','一店舗のAI支援は成果が出たが、地域ごとの手順が違う。','地域差を確認して改善しながら段階的に展開する','一店舗の設定を変更せず全店舗へ同日配布する','段階的な展開では現場差と成果を確認できる。','一店舗の設定が他地域へそのまま合うとは限らない。','guide'],
-    ['T10','4.4.3','各部門がAI利用規程を別々に作り、判断が食い違う。','AIのCOEに共通指針と部門間の知見共有を担わせる','規程を各部門内で管理してから全社の調整を検討する','COEは共通の能力と指針の共有を支える。','部門ごとの規程だけでは一貫した運用にならない。','guide'],
-    ['T11','4.4.4','AI支援を導入した支店で利用率が低下し、現場から改善案が出た。','成果指標と利用者の声を集めて改善へ反映する','導入時に決めた計画を守り、利用者の声は契約更新時に見る','測定と利用者からのフィードバックで改善する。','契約更新まで待つと利用低下の原因を放置する。','guide'],
-    ['T12','4.4.5/4.4.6','AI相談を実証から本番へ移し、営業時間外も提供したい。','運用責任者、監視と障害時の手順を決めて移行する','実証の担当者を置いたまま本番の監視体制を省く','本番移行には運用責任と障害対応が要る。','実証の担当だけでは常時提供の運用を担保しにくい。','guide'],
-    ['T13','4.2.3','営業部は業務データの分析と自然言語の質問を同じ場で使いたい。','Amazon Quickで接続データの分析とAI支援を検討する','Amazon Bedrockを完成済みの業務分析画面として購入する','Quickは分析とAIを使う業務向けの機能を提供する。','Bedrockはアプリ構築の基盤であり完成済みの分析画面ではない。','quick'],
-    ['T14','4.2.3','データ部は独自の故障予測モデルを学習し、運用したい。','SageMaker AIで独自モデルの開発と学習を検討する','Amazon Quickの分析画面をモデル学習の基盤とする','SageMaker AIはモデルの構築と学習を支援する。','Quickの分析機能は独自モデル学習基盤とは役割が違う。','sage']
-  ];
-  const domainByPrefix={F:'fundamentals',S:'strategy',G:'governance',T:'transformation'};
-  const bank=[];
-  function pairText(a,b){return '案件Aは'+a+'。案件Bは'+b+'。'}
-  function pairNote(a,b,yesA,yesB){return '案件A: '+(yesA?a[5]:a[6])+' 案件B: '+(yesB?b[5]:b[6])}
-  for(const prefix of ['F','S','G','T']){
-    const group=topics.filter(t=>t[0][0]===prefix);
-    for(let i=0;i<group.length;i++){
-      for(let v=0;v<4;v++){
-        const a=group[i],b=group[(i+[1,3,5,7][v])%group.length];
-        const id=a[0]+'-'+(v+1);
-        const multi=bank.length%6===0;
-        const context=[
-          '二つの案件を同じ四半期に進める。案件Aでは'+a[2]+'案件Bでは'+b[2],
-          '複数部門のAI計画を審査している。案件Aでは'+a[2]+'一方、案件Bでは'+b[2],
-          '事業責任者は二つの相談を受けた。案件Aでは'+a[2]+'案件Bでは'+b[2],
-          '予算会議で二案件の実施条件を決める。案件Aでは'+a[2]+'また案件Bでは'+b[2]
-        ][v];
-        let choices,correct;
-        if(multi){
-          choices=[
-            [a[3],a[5]],[a[4],a[6]],[b[3],b[5]],[b[4],b[6]],
-            [group[(i+v+9)%group.length][4],'案件Aと案件Bの目的に沿う措置ではない。'+group[(i+v+9)%group.length][6]]
-          ];
-          correct=[0,2];
-        }else{
-          choices=[
-            [pairText(a[3],b[3]),pairNote(a,b,true,true)],
-            [pairText(a[3],b[4]),pairNote(a,b,true,false)],
-            [pairText(a[4],b[3]),pairNote(a,b,false,true)],
-            [pairText(a[4],b[4]),pairNote(a,b,false,false)]
-          ];
-          correct=[0];
-        }
-        // A stable permutation balances answer positions without randomizing explanations.
-        const multiOrders=[[1,3,0,4,2],[0,1,3,2,4],[4,0,2,1,3],[3,2,4,0,1],[2,4,1,3,0]];
-        const order=multi?multiOrders[(i+Math.floor(i/2)+v)%5]:[[1,0,3,2],[2,1,0,3],[3,2,1,0],[0,3,2,1]][(i+v)%4];
-        const options=order.map((n,j)=>({id:'o'+j,text:choices[n][0],note:choices[n][1]}));
-        bank.push({
-          id,domain:domainByPrefix[prefix],skill:a[1],relatedSkill:b[1],
-          stem:context+(multi?'最初に採る対応を二つ選べ。':'両案件に最も合う判断の組み合わせはどれか。'),
-          options,correct:order.map((n,j)=>correct.includes(n)?'o'+j:null).filter(Boolean),
-          source:sources[a[7]],sources:[sources[a[7]],sources[b[7]]],
-          guide,review:'案件Aは'+a[3]+'。案件Bは'+b[3]+'。'
-        });
-      }
-    }
-  }
-  const roiCases=[
-    ['S08-1','小売会社は在庫予測AIの初年度便益を600万円、初期構築費を180万円、年間運用費を120万円と見込む。投資委員会は税と割引率を含めず初年度純便益で案件を比べる。最も正しい金額はいくらか。',600,180,120],
-    ['S08-2','物流会社は配送計画AIで初年度480万円の便益を見込み、導入時に100万円、稼働後の年間費用に260万円を使う。財務部は同じ期間の便益と費用で判断したい。最も正しい初年度純便益はいくらか。',480,100,260],
-    ['S08-3','保険会社は審査支援AIで初年度900万円の便益を予測した。初期設定に300万円、年間の運用と監視に250万円かかる。経営会議は便益から両費用を引いた値を使う。最も正しい純便益はいくらか。',900,300,250],
-    ['S08-4','製造会社は故障予測AIの初年度便益を750万円と見積もる。設備接続の初期費は250万円、監視を含む年間運用費は300万円である。次年度の投資枠を決めるため、最も正しい初年度純便益を選ぶ。',750,250,300]
-  ];
-  for(const [id,stem,benefit,initial,operation] of roiCases){
-    const amounts=[benefit-initial-operation,benefit-initial,benefit-operation,benefit];
-    const notes=[
-      '初年度便益から初期費と運用費を差し引いた金額である。',
-      '初期費を引いているが、年間運用費が残っている。',
-      '年間運用費を引いているが、初期費が残っている。',
-      '便益の総額であり、初期費と年間運用費を反映していない。'
-    ];
-    const order=[2,0,3,1].slice((Number(id.at(-1))-1)%4).concat([2,0,3,1].slice(0,(Number(id.at(-1))-1)%4));
-    const options=order.map((n,i)=>({id:'o'+i,text:amounts[n]+'万円',note:notes[n]}));
-    const index=bank.findIndex(q=>q.id===id);
-    bank[index]={
-      id,domain:'strategy',skill:'2.2.3',relatedSkill:'2.2.3',stem,options,
-      correct:['o'+order.indexOf(0)],source:guide,sources:[guide,sources.calc],
-      guide,review:'便益'+benefit+'万円から初期費'+initial+'万円と運用費'+operation+'万円を引く。純便益は'+amounts[0]+'万円。'
-    };
-  }
-  window.AIB_BANK=bank;
-  window.AIB_SOURCES=sources;
+'use strict';
+const guide='https://docs.aws.amazon.com/pdfs/aws-certification/latest/ai-business-strategist-01/ai-business-strategist-01.pdf';
+const sources={
+  guide,
+  bedrock:'https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-bedrock.html',
+  rag:'https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base.html',
+  guard:'https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-how.html',
+  sage:'https://docs.aws.amazon.com/sagemaker/latest/dg/how-it-works-mlconcepts.html',
+  quick:'https://docs.aws.amazon.com/quick/latest/userguide/what-is.html',
+  caf:'https://docs.aws.amazon.com/whitepapers/latest/overview-aws-cloud-adoption-framework/business-perspective.html',
+  lens:'https://docs.aws.amazon.com/wellarchitected/latest/responsible-ai-lens/responsible-ai-lens.html',
+  shared:'https://aws.amazon.com/compliance/shared-responsibility-model/',
+  calc:'https://calculator.aws/',
+  cost:'https://docs.aws.amazon.com/cost-management/latest/userguide/ce-what-is.html',
+  market:'https://aws.amazon.com/marketplace/',
+  iso42001:'https://www.iso.org/standard/42001',
+  iso23053:'https://www.iso.org/standard/74438.html'
+};
+const bank=[];
+function add(id,task,source,stem,choices,correctCount){
+  if(!sources[source]||!Array.isArray(choices)||choices.length!==(correctCount===2?5:4))throw Error(id);
+  const parsed=choices.map(v=>{const pos=v.indexOf('|');if(pos<0)throw Error(id);return {text:v.slice(0,pos),note:v.slice(pos+1)}});
+  let seed=0;for(const ch of id)seed=(seed*31+ch.charCodeAt(0))>>>0;
+  const order=parsed.map((_,i)=>i);
+  for(let i=order.length-1;i>0;i--){seed=(1664525*seed+1013904223)>>>0;const j=seed%(i+1);[order[i],order[j]]=[order[j],order[i]]}
+  const options=order.map((n,i)=>({id:'o'+i,text:parsed[n].text,note:parsed[n].note}));
+  bank.push({
+    id,domain:({F:'fundamentals',S:'strategy',G:'governance',T:'transformation'})[id[0]],
+    skill:task,stem,options,correct:order.map((n,i)=>n<correctCount?'o'+i:null).filter(Boolean),
+    source:sources[source],sources:[sources[source],guide],guide,
+    review:parsed.slice(0,correctCount).map(x=>x.text+'。'+x.note).join(' ')
+  });
+}
+window.AIB_Q=(id,task,source,stem,choices)=>add(id,task,source,stem,choices,1);
+window.AIB_M=(id,task,source,stem,choices)=>add(id,task,source,stem,choices,2);
+window.AIB_BANK=bank;
+window.AIB_SOURCES=sources;
 })();
