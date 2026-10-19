@@ -6,6 +6,7 @@ const sources={
   bedrock:'https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-bedrock.html',
   rag:'https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base.html',
   guard:'https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-how.html',
+  guardPii:'https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-sensitive-filters.html',
   sage:'https://docs.aws.amazon.com/sagemaker/latest/dg/how-it-works-mlconcepts.html',
   quick:'https://docs.aws.amazon.com/quick/latest/userguide/what-is.html',
   caf:'https://docs.aws.amazon.com/whitepapers/latest/overview-aws-cloud-adoption-framework/business-perspective.html',
