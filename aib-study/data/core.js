@@ -7,6 +7,10 @@ const sources={
   rag:'https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base.html',
   guard:'https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-how.html',
   guardPii:'https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-sensitive-filters.html',
+  comprehend:'https://docs.aws.amazon.com/comprehend/latest/dg/how-pii.html',
+  macie:'https://docs.aws.amazon.com/macie/latest/user/what-is-macie.html',
+  budgets:'https://docs.aws.amazon.com/cost-management/latest/userguide/budget-methods.html',
+  serviceCatalog:'https://docs.aws.amazon.com/servicecatalog/latest/adminguide/introduction.html',
   sage:'https://docs.aws.amazon.com/sagemaker/latest/dg/how-it-works-mlconcepts.html',
   quick:'https://docs.aws.amazon.com/quick/latest/userguide/what-is.html',
   caf:'https://docs.aws.amazon.com/whitepapers/latest/overview-aws-cloud-adoption-framework/business-perspective.html',
@@ -29,7 +33,7 @@ function add(id,task,source,stem,choices,correctCount){
   bank.push({
     id,domain:({F:'fundamentals',S:'strategy',G:'governance',T:'transformation'})[id[0]],
     skill:task,stem,options,correct:order.map((n,i)=>n<correctCount?'o'+i:null).filter(Boolean),
-    source:sources[source],sources:[sources[source],guide],guide,
+    source:sources[source],sources:[...new Set([sources[source],guide])],guide,
     review:parsed.slice(0,correctCount).map(x=>x.text+'。'+x.note).join(' ')
   });
 }
